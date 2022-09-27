@@ -1,5 +1,5 @@
-const database = require('./database');
+const databaseQuery = require('./database');
 
-const con = database.con
+const data = databaseQuery
 
-console.log(con.RowDataPacket[0])
+console.log(data)
