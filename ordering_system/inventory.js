@@ -3,5 +3,5 @@ const databaseQuery = require('./database');
 const data = databaseQuery
 
 setTimeout(function () {
-  console.log(data);
+  return data
 }, 2000);
