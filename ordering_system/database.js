@@ -27,14 +27,4 @@ db.promise = (sql) => {
   });
 };
 
-module.exports = db.promise("SELECT SUM(invoice_item.quantity) as quantity , inventory.make as make, inventory.item_id FROM invoice_item INNER JOIN inventory ON invoice_item.item_id = inventory.item_id GROUP BY inventory.item_id")
-  .then((result) => {
-    console.log(JSON.parse(JSON.stringify(result)));
-    const data = JSON.parse(JSON.stringify(result))
-    return data
-  })
-  .catch((err) => {
-    console.log(err);
-  });
-
-
+module.exports = db
