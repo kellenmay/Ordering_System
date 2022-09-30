@@ -2,11 +2,6 @@ const { ApolloServer, gql } = require("apollo-server");
 const database = require("./database");
 
 const typeDefs = gql`
-  type Item {
-    quantity: Int #done
-    make: String #done
-    itemNumber: Int #done
-  }
 
   type Customer {
     id: ID #done
@@ -41,36 +36,15 @@ const typeDefs = gql`
   }
 
   type Query {
-    customers: [Customer]
-    inventories: [Inventory]
-    invoices: [Invoice]
+    customers: [Customer] #done
+    inventories: [Inventory] #done
+    invoices: [Invoice] #done
     customer(id: ID!): Customer
     invoice(id: ID!): Invoice
     inventory(id: ID!): Inventory
   }
 `;
 
-class Item {
-  _quantity;
-  _make;
-  item_number;
-
-  constructor(args) {
-    this._quantity = args.quantity;
-    this._make = args.make;
-    this._item_id = args.item_number;
-  }
-
-  quantity() {
-    return this._quantity;
-  }
-  make() {
-    return this._make;
-  }
-  itemNumber() {
-    return this.item_number;
-  }
-}
 
 class Customer {
   _id;
@@ -229,9 +203,7 @@ class Invoice {
     const database = context.db;
 
     return database
-      .promise(
-        `SELECT * FROM invoice_item WHERE invoice_item.invoice_number = ${this._id}`
-      )
+      .promise(`SELECT * FROM invoice_item WHERE invoice_item.invoice_number = ${this._id}`)
       .then((result) => {
         console.log(JSON.parse(JSON.stringify(result)));
         const data = JSON.parse(JSON.stringify(result));
@@ -252,7 +224,7 @@ class Invoice {
 
 const resolvers = {
   Query: {
-    customer: () => {
+    customers: () => {
       return database
         .promise("SELECT * FROM customer")
         .then((result) => {
@@ -270,8 +242,8 @@ const resolvers = {
           }
           return result;
         });
-    },
-    inventory: () => {
+    },  
+    inventories: () => {
       return database
         .promise("SELECT * FROM inventory")
         .then((result) => {
