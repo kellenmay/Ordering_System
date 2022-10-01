@@ -243,6 +243,28 @@ const resolvers = {
           return result;
         });
     },  
+    customer: (obj, args) => {
+      console.log(args.id)
+      return database
+        .promise("SELECT * FROM customer")
+        .then((result) => {
+          const data = JSON.parse(JSON.stringify(result));
+          return data;
+        })
+        .catch((err) => {
+          console.log(err);
+        })
+        .then((customers) => {
+          const result = [];
+          for (let i = 0; i < customers.length; i++) {
+            if (customers[i].id == args.id){
+            console.log(customers[i])
+            result.push(new Customer(customers[i]));
+          }
+        }
+        return result;
+        });
+    },  
     inventories: () => {
       return database
         .promise("SELECT * FROM inventory")
