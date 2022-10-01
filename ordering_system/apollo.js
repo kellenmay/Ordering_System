@@ -258,10 +258,10 @@ const resolvers = {
           const result = [];
           for (let i = 0; i < customers.length; i++) {
             if (customers[i].id == args.id){
-            console.log(customers[i])
-            result.push(new Customer(customers[i]));
+              result.push(new Customer(customers[i]));
+            }
           }
-        }
+          console.log(result)
         return result;
         });
     },  
