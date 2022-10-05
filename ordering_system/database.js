@@ -19,6 +19,7 @@ db.promise = (sql) => {
   return new Promise((resolve, reject) => {
     db.query(sql, (err, result) => {
       if (err) {
+        console.error(err)
         reject(new Error());
       } else {
         resolve(result);
