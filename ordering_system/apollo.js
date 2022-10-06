@@ -309,7 +309,6 @@ class Invoice {
   
   customer(args, context) {
     const database = context.db;
-    // console.log(this._customer_id)
     return database
       .promise(
         `SELECT * FROM customer WHERE customer.id = ${this._customer_id}`
@@ -352,254 +351,165 @@ class Invoice {
 
 const resolvers = {
   Query: {
-    customers: () => {
-      return database
-        .promise("SELECT * FROM customer")
-        .then((result) => {
-          const data = JSON.parse(JSON.stringify(result));
-          return data;
-        })
-        .catch((err) => {
-          console.log(err);
-        })
-        .then((customers) => {
-          const result = [];
+    customers: async () => {
+      try {
+        const customers = await database.promise("SELECT * FROM customer")
+        const result = [];
           for (let i = 0; i < customers.length; i++) {
             result.push(new Customer(customers[i]));
           }
-          return result;
-        });
+        return result;
+      }
+      catch(error){
+        console.error(error)
+        return false
+      }
     },  
-    customer: (obj, args) => {
-      return database
-        .promise(`SELECT * FROM customer WHERE customer.id = ${args.id}`)
-        .then((result) => {
-          const data = JSON.parse(JSON.stringify(result));
-          return data;
-        })
-        .catch((err) => {
-          console.log(err);
-        })
-        .then(([customer]) => {
-        //   const result = [];
-        //   for (let i = 0; i < customers.length; i++) {
-        //     if (customers[i].id == args.id){
-        //       result.push(new Customer(customers[i]));
-        //     }
-        //   }
-        // return result[0];
-        // console.log(customer);
+    customer: async (obj, args) => {
+      try {
+        const customer = await getCustomer(args.id)
         return new Customer(customer);
-        });
+      }
+      catch(error){
+        console.error(error)
+        return false
+      }
     },  
-    inventories: () => {
-      return database
-        .promise("SELECT * FROM inventory")
-        .then((result) => {
-          const data = JSON.parse(JSON.stringify(result));
-          return data;
-        })
-        .catch((err) => {
-          console.log(err);
-        })
-        .then((inventories) => {
-          const result = [];
-          for (let i = 0; i < inventories.length; i++) {
-            result.push(new Inventory(inventories[i]));
-          }
-          return result;
-        });
-    },
-    inventory: (obj, args) => {
-      return database
-        .promise(`SELECT * FROM inventory WHERE inventory.id = ${args.id}`)
-        .then((result) => {
-          const data = JSON.parse(JSON.stringify(result));
-          return data;
-        })
-        .catch((err) => {
-          console.log(err);
-        })
-        .then((inventories) => {
-          const result = [];
-          for (let i = 0; i < inventories.length; i++) {
-            if (inventories[i].id == args.id){
+    inventories: async () => {
+      try {
+        const inventories = await database.promise("SELECT * FROM inventory")
+        const result = [];
+            for (let i = 0; i < inventories.length; i++) {
               result.push(new Inventory(inventories[i]));
             }
+            return result;
           }
-          return result[0];
-        });
+      catch(error){
+        console.error(error)
+        return false
+      }
     },
-    invoices: () => {
-      return database
-        .promise("SELECT * FROM invoice")
-        .then((result) => {
-          const data = JSON.parse(JSON.stringify(result));
-          return data;
-        })
-        .catch((err) => {
-          console.log(err);
-        })
-        .then((invoices) => {
-          const result = [];
+    inventory: async (obj, args) => {
+      try{
+        const inventory = await getInventory(args.id)
+        return new Inventory(inventory)
+      }
+      catch(error){
+        console.error(error)
+        return false
+      }
+    }, 
+    invoices: async () => {
+      try{
+        const invoices = await database.promise("SELECT * FROM invoice")
+        const result = [];
           for (let i = 0; i < invoices.length; i++) {
             result.push(new Invoice(invoices[i]));
           }
-          return result;
-        });
-    },
-    invoice: (obj, args) => {
-      return database
-        .promise(`SELECT * FROM invoice WHERE invoice.id = ${args.id}`)
-        .then((result) => {
-          const data = JSON.parse(JSON.stringify(result));
-          return data;
-        })
-        .catch((err) => {
-          console.log(err);
-        })
-        .then((invoices) => {
-          const result = [];
-          for (let i = 0; i < invoices.length; i++) {
-            if (invoices[i].id == args.id){
-              result.push(new Invoice(invoices[i]));
-            }
-          }
-          return result[0];
-        });
-    },
-  },
+        return result;
+      }
+      catch(error){
+        console.error(error)
+        return false
+      }
+    },  
+    invoice: async (obj, args) => {
+      try{
+        const invoice = await getInvoice(args.id)
+        return new Invoice(invoice);
+      }
+      catch(error){
+        console.error(error)
+        return false
+      }
+    },  
+},
   Mutation: {
-    createCustomer: (obj, { args }) => {
-      console.log(args)
-      return database
-        .promise(`INSERT INTO customer (\`name\`, address, email, phone_number)
-        VALUES ("${args.name}", "${args.address}", "${args.email}", "${args.phoneNumber}")`)
-        .then((result) => {
+    createCustomer: async (obj, { args }) => {
+      try {
+        const result = await database.promise(`INSERT INTO customer (\`name\`, address, email, phone_number)
+          VALUES ("${args.name}", "${args.address}", "${args.email}", "${args.phoneNumber}")`);
+          
           const customerId = result?.insertId;
-
           if (customerId) {
-
-            return database
-            .promise(`SELECT * FROM customer WHERE customer.id = ${customerId}`)
-            .then((result) => {
-              const data = JSON.parse(JSON.stringify(result));
-              return data;
-            })
-            .catch((err) => {
-              console.log(err);
-            })
-            .then(([customer]) => {
+            const customer = await getCustomer(customerId);
             return {
                 customer: new Customer(customer),
                 success: true,
               }
-          });
           }
          return  {customer: null, success: false}
-        })
-        .catch((err) => {
-          console.error(err);
-        })
+      }
+      catch(error){
+        console.error(error)
+        return false
+      }
     },  
-    createInventory: (obj, { args }) => {
-      console.log(args)
-      return database
-        .promise(`INSERT INTO inventory (item_number, make, msrp, item_description)
-        VALUES ("${args.itemNumber}", "${args.make}", ${args.msrp}, "${args.description}")`)
-        .then((result) => {
+    createInventory: async (obj, { args }) => {
+      try{
+
+        const result = await database.promise(`INSERT INTO inventory (item_number, make, msrp, item_description)
+          VALUES ("${args.itemNumber}", "${args.make}", ${args.msrp}, "${args.description}")`)
+
           const inventoryId = result?.insertId;
-          console.log(inventoryId)
-
           if (inventoryId) {
-
-            return database
-            .promise(`SELECT * FROM inventory WHERE inventory.id = ${inventoryId}`)
-            .then((result) => {
-              const data = JSON.parse(JSON.stringify(result));
-              return data;
-            })
-            .catch((err) => {
-              console.log(err);
-            })
-            .then(([inventory]) => {
+            const inventory = await getInventory(inventoryId);
             return {
                 inventory: new Inventory(inventory),
                 success: true,
               }
-          });
+            }
+           return  {inventory: null, success: false}
           }
-         return  {inventory: null, success: false}
-        })
-        .catch((err) => {
-          console.error(err);
-        })
+      catch(error){
+        console.error(error)
+        return false
+      }
     },  
-    createInvoice: (obj, { args }) => {
-      console.log(args)
-      return database
-        .promise(`INSERT INTO invoice (customer_id, date_of_sale)
-        VALUES ("${args.customerId}", "${args.dateOfSale}")`)
-        .then((result) => {
+    createInvoice: async (obj, { args }) => {
+      try {
+        const result = await database.promise(`INSERT INTO invoice (customer_id, date_of_sale)
+          VALUES ("${args.customerId}", "${args.dateOfSale}")`)
+
           const invoiceId = result?.insertId;
-          console.log(invoiceId)
-
           if (invoiceId) {
-
-            return database
-            .promise(`SELECT * FROM invoice WHERE invoice.id = ${invoiceId}`)
-            .then((result) => {
-              const data = JSON.parse(JSON.stringify(result));
-              return data;
-            })
-            .catch((err) => {
-              console.log(err);
-            })
-            .then(([invoice]) => {
-            return {
-                invoice: new Invoice(invoice),
-                success: true,
-              }
-          });
+          const invoice = await getInvoice(invoiceId)
+          return {
+              invoice: new Invoice(invoice),
+              success: true,
+            }
           }
-         return  {invoice: null, success: false}
-        })
-        .catch((err) => {
-          console.error(err);
-        })
+            return  {invoice: null, success: false}
+        }
+      catch(error){
+        console.error(error)
+        return false
+      }
     },     
-    createInvoiceItem: (obj, { args }) => {
-      console.log(args)
-      return database
-        .promise(`INSERT INTO invoice_item (invoice_number, line_number, item_id, quantity, price)
-        VALUES (${args.invoice}, ${args.lineNumber}, ${args.item}, ${args.quantity}, ${args.price})`)
-        .then((result) => {
-            return database
-            .promise(`SELECT * FROM invoice_item WHERE invoice_number = ${args.invoice} and line_number = ${args.lineNumber}`)
-            .then((result) => {
-              const data = JSON.parse(JSON.stringify(result));
-              return data;
-            })
-            .catch((err) => {
-              console.log(err);
-            })
-            .then(([invoiceItem]) => {
+    createInvoiceItem: async (obj, { args }) => {
+      try {
+        const result = await database.promise(`INSERT INTO invoice_item (invoice_number, line_number, item_id, quantity, price)
+          VALUES (${args.invoice}, ${args.lineNumber}, ${args.item}, ${args.quantity}, ${args.price})`)
+
+          const invoiceItemId = result?.insertId;
+          if (invoiceItemId) {
+            const invoiceItem = await getInvoice(invoiceItemId)
               if(invoiceItem){
                 return {
                     invoiceItem: new InvoiceItem(invoiceItem),
                     success: true,
                   }
                 }
-              return  {invoiceItem: null, success: false}
-          });
-        })
-        .catch((err) => {
-          console.error(err);
-        })
-    }, 
+                return  {invoiceItem: null, success: false}
+              }
+            }
+      catch(error){
+        console.error(error)
+        return false
+      }
+    },     
     deleteCustomer: async (obj, { id }) => {
       try {
-        console.log("Customer ID: ", id)
         const [existingInvoiceItem] = await database.promise (`
           SELECT EXISTS (
             SELECT 1
@@ -609,7 +519,6 @@ const resolvers = {
         `);
 
         const hasInvoices = existingInvoiceItem?.hasInvoices
-        console.log({hasInvoices});
   
         if (hasInvoices){ throw new Error("Cannot delete customer due to existing invoices") }
         await database
@@ -623,8 +532,6 @@ const resolvers = {
     },
     deleteInvoice: async (obj, { id }) => {
       try {
-        console.log("Inventory ID: ", id)
-
         const [existingItem] = await database.promise (`
           SELECT EXISTS (
             SELECT 1
@@ -634,10 +541,8 @@ const resolvers = {
         `);
 
         const hasInvoiceItems = existingItem?.hasInvoiceItems
-        console.log({hasInvoiceItems});
 
         if (hasInvoiceItems){ throw new Error("Cannot delete invoice due to existing invoices_items") }
-
 
         await database
         .promise (`DELETE FROM invoice WHERE invoice.id = ${id}`)
@@ -650,9 +555,6 @@ const resolvers = {
     },
     deleteInventory: async (obj, { id }) => {
       try {
-
-        console.log("Inventory ID: ", id)
-
         const [existingItem] = await database.promise (`
           SELECT EXISTS (
             SELECT 1
@@ -662,7 +564,6 @@ const resolvers = {
         `);
 
         const hasInvoiceItems = existingItem?.hasInvoiceItems
-        console.log({hasInvoiceItems});
 
         if (hasInvoiceItems){ throw new Error("Cannot delete inventory due to existing invoice_items") }
 
@@ -678,7 +579,6 @@ const resolvers = {
 
     deleteInvoiceItem: async (obj, { invoiceNumber, lineNumber }) => {
       try {
-        console.log("Invoice_item: ", invoiceNumber)
         await database
         .promise (`DELETE FROM invoice_item WHERE invoice_item.invoice_number = ${invoiceNumber} and invoice_item.line_number = ${lineNumber}`)
         return true
@@ -850,7 +750,7 @@ const resolvers = {
 
         const existingInvoiceItem = await getInvoiceItem(args);
         // cannot update the PKs
-
+        
         if (!existingInvoiceItem) {
           throw new Error(`No Invoice_Item found with id ${args.lineNumber}`)
         }
@@ -888,12 +788,12 @@ const resolvers = {
         await database.promise(`
           UPDATE invoice_item
           SET
-          invoice_number = ${invoice},
-          line_number = ${lineNumber},
-          item_id = ${item},
-          quantity = ${quantity},
-          price = ${price}
-          WHERE line_number = ${args.lineNumber} AND invoice_number = ${args.lineNumber}
+          invoice_number = ${args.invoice},
+          line_number = ${args.lineNumber},
+          item_id = ${args.item},
+          quantity = ${args.quantity},
+          price = ${args.price}
+          WHERE line_number = ${args.lineNumber} AND invoice_number = ${args.invoice}
 
         `)
         
@@ -938,6 +838,7 @@ const {
   ApolloServerPluginLandingPageLocalDefault,
 } = require("apollo-server-core");
 const { dedentBlockStringValue } = require("@graphql-tools/utils");
+const { resourceLimits } = require("worker_threads");
 
 const server = new ApolloServer({
   typeDefs,
